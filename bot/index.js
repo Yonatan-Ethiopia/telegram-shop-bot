@@ -2,28 +2,18 @@ const telegramBot = require("node-telegram-bot-api");
 
 const mongoose = require("mongoose");
 const product = require("../models/productModel");
-
-const { add, list, update, delete} = require('../handlers/handlers');
+const data = product.find();
+const { start, help, list, available} = require('../handlers/handlers');
 
 require('dotenv').config();
 
 const token = process.env.BOT_TOKEN;
 const bot = new telegramBot(token, { polling: true });
 
-bot.onText(/\/start/, (msg) => {
-    const chatId = msg.chat.id;
-    bot.sendMessage(chatId, "Hello world, this is my first message");
-});
+bot.onText(/\/start/, (msg) => start(bot, msg));
 
-bot.onText(/\/help/, (msg) => {
-    const chatId = msg.chat.id;
-    bot.sendMessage( chatId, "I will help you sir")
-});
+bot.onText(/\/help/, (msg) => help(bot, msg));
 
-bot.onText( /\/add/, add );
+bot.onText( /\/list/, (msg) => (bot, msg, data) );
 
-bot.onText( /\/list/, list);
-
-bot.onText( /\/update/, update);
-
-bot.onText( /\/delete/, delete);
+bot.onText( /\/available/, (msg) => available(bot, msg, data));
