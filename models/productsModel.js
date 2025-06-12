@@ -4,9 +4,9 @@ const imageSchema = new mongoose.Schema({
 })
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true},
-  price: { type: Number, required: true},
-  category: { type: String, required: true}
-  status: { type: String, enum: ['available', 'unavailable'], default: 'available'},
+  price: { type: String, required: true},
+  category: { type: String, required: true},
+  status: { type: String, enum: ['available', 'unavailable'], default: 'available'}
  // image: [imageSchema]
 });
 module.exports = mongoose.model('product', productSchema);
