@@ -1,3 +1,4 @@
+const products = require('../../models/productsModel');
 let isAdding = false;
 let step = 'none';
 let newProduct = {}
@@ -19,7 +20,7 @@ const initiate_Add = (bot, msg)=>{
   step = 'name';
   bot.sendMessage( msg.chat.id, "What is the name of the product");
 }
-const add = (bot, msg)=>{
+const add = async (bot, msg)=>{
   if(isAdding){
     if(step == 'name')
       const name = msg.text;
@@ -31,6 +32,14 @@ const add = (bot, msg)=>{
       step = 'category';
       bot.sendMessage( msg.chat.id,"What is the category of the product ?")
     }
+    else if(step == 'category'){
+      newProduct.category = msg.text;
+      step = 'none';
+      isAdding = false;
+      await products.create(newProduct);
+      bot.sendMessage(msg.chat.id, "Product added successfully \n Name : " + newProduct.name + "\n Price : " + newProduct.price + "\n Category : " + newProduct.category + "\n Status: available");
+      newProduct = {}
+    }
   }
 }
-module.exports = { start, help, list, available}
+module.exports = { start, help, list, available, initiate_Add, add}
