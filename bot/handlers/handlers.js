@@ -10,7 +10,7 @@ const help = (bot, msg)=>{
 }
 const list = async (bot, msg)=>{
   try {
-    const data = await products.find().sort({ });
+    const data = await products.find().sort({ createdAt: -1});
     if (data.length === 0) {
       bot.sendMessage(msg.chat.id, "No products found.");
     } else {
