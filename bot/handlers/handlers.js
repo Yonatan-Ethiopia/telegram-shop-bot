@@ -10,17 +10,15 @@ const help = (bot, msg)=>{
 }
 const list = async (bot, msg)=>{
   try {
-    const data = await products.find();
+    const data = await products.find().sort({ });
     if (data.length === 0) {
       bot.sendMessage(msg.chat.id, "No products found.");
     } else {
-      let message = "📦 Product List:\n\n";
-      data.forEach((product, index) => {
-        message += `${index + 1}. Name: ${product.name}\n   Price: ${product.price}\n   Category: ${product.category}\n   Status: ${product.status}\n\n`;
-      });
-      bot.sendMessage(msg.chat.id, message);
-    }
-  } catch (error) {
+      for( let i = 0; i < data.length; i++){
+       bot.sendPhoto(msg.chat.id, data[i].image, { caption: `Name: ${data[i].name}\nPrice:${data[i].price}\nCategory: ${data[i].category}\nStatus: ${data[i].status}` })
+      }
+  } 
+  }catch (error) {
     console.error('Error fetching products:', error);
     bot.sendMessage(msg.chat.id, "Error fetching products. Please try again.");
   }
@@ -50,12 +48,15 @@ const initiate_Add = (bot, msg)=>{
 }
 const add = async (bot, msg)=>{
   if( msg.text == '/add' || msg.text == '/start' || msg.text == 'help' || msg.text == '/list' || msg.text == '/available') return;
-  if(isAdding){
+  try{
+    if(isAdding){
     if(step == 'name'){
       const name = msg.text;
       newProduct.name = name;
       step = 'price';
-      bot.sendMessage( msg.chat.id,"What is the price of the product ?") }
+      bot.sendMessage( msg.chat.id,"What is the price of the product ?") 
+  }
+
     else if(step == 'price'){
       newProduct.price = msg.text;
       step = 'category';
@@ -63,12 +64,20 @@ const add = async (bot, msg)=>{
     }
     else if(step == 'category'){
       newProduct.category = msg.text;
-      step = 'none';
+      step = 'image';
+      bot.sendMessage(msg.chat.id, "Upload a picture of the product");
+    }else if(msg.photo){
+      const fileId = msg.photo[msg.photo.length - 1].file_id;
+      newProduct.image = fileId;
       isAdding = false;
+      step = 'none';
       await products.create(newProduct);
-      bot.sendMessage(msg.chat.id, "Product added successfully \n Name : " + newProduct.name + "\n Price : " + newProduct.price + "\n Category : " + newProduct.category + "\n Status: available");
+      bot.sendPhoto( msg.chat.id, fileId, {caption: "Product added successfully \n Name : " + newProduct.name + "\n Price : " + newProduct.price + "\n Category : " + newProduct.category + "\n Status: available" });
       newProduct = {}; }
     }
-  
+  }catch(err){
+    bot.sendMessage( msg.chat.id, "Error adding product.");
+    console.log(err);
+  }
 }
 module.exports = { start, help, list, available, initiate_Add, add}

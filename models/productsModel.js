@@ -1,12 +1,11 @@
 const mongoose = require('mongoose');
-const imageSchema = new mongoose.Schema({
-  imgID: { type: String, required: true}
-})
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true},
   price: { type: String, required: true},
   category: { type: String, required: true},
-  status: { type: String, enum: ['available', 'unavailable'], default: 'available'}
- // image: [imageSchema]
+  status: { type: String, enum: ['available', 'unavailable'], default: 'available'},
+  stock: { type: Number, default: 1},
+  image: { type : String, required : true},
+  createdAt: { type: Date, default: Date.now }
 });
 module.exports = mongoose.model('product', productSchema);
