@@ -6,6 +6,6 @@ const productSchema = new mongoose.Schema({
   status: { type: String, enum: ['available', 'unavailable'], default: 'available'},
   stock: { type: Number, default: 1},
   image: { type : String, required : true},
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now, timestamps: true }
 });
 module.exports = mongoose.model('product', productSchema);
