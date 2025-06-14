@@ -1,12 +1,25 @@
 const telegramBot = require("node-telegram-bot-api");
 
 const mongoose = require("mongoose");
-mongoose.connect( process.env.MONGODB_URL,{ useNewUrlParser: true,
-useUnifiedTopology: true }).then(()=> console.log("Connected to MongoDb")).catch((err)=>console.log(err));
+mongoose
+  .connect(process.env.MONGODB_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Connected to MongoDb"))
+  .catch((err) => console.log(err));
 const product = require("../models/productsModel");
-const { start, help, list, available, initiate_Add, add} = require('../bot/handlers/handlers');
+const {
+  start,
+  help,
+  list,
+  available,
+  initiate_Add,
+  add,
+  buttons,
+} = require("../bot/handlers/handlers");
 
-require('dotenv').config();
+require("dotenv").config();
 
 const token = process.env.BOT_TOKEN;
 const bot = new telegramBot(token, { polling: true });
@@ -17,10 +30,10 @@ bot.onText(/\/help/, (msg) => help(bot, msg));
 
 bot.onText(/\/list/, (msg) => list(bot, msg));
 
-bot.onText( /\/available/, (msg) => available(bot, msg));
-bot.onText( /\/add/, (msg)=>
-  initiate_Add(bot, msg)
-);
-bot.on('message', (msg)=>
-  add(bot, msg)
-);
+bot.onText(/\/available/, (msg) => available(bot, msg));
+bot.onText(/\/add/, (msg) => initiate_Add(bot, msg));
+bot.on("message", (msg) => add(bot, msg));
+bot.on("callback_query", (query) => {
+  bot.answerCallbackQuery(query.id); bot.deleteMessage(query.message.chat.id, query.message.message_id);
+  buttons(bot, query);
+});
