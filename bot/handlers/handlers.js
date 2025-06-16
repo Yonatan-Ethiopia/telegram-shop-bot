@@ -221,7 +221,7 @@ const add = async (bot, msg) => {
       },
     );
   }
-  if (deleting && msg.text in oCategories) {
+  if (deleting && categories.includes(msg.text)) {
     bot.sendMessage(
       msg.chat.id,
       "Here are the products in this category, choose the to delete ☄️",
@@ -288,8 +288,8 @@ const add = async (bot, msg) => {
       });
     });
   }
-  if (msg.text in products.distinct("category")) {
-    const productsByCategory = await productsproducts.find({
+  if( categories.includes( msg.text ) && !deleting ){
+    const productsByCategory = await products.find({
       category: msg.text,
     });
     bot.sendMessage(msg.chat.id, "Here are the products in this category", {
