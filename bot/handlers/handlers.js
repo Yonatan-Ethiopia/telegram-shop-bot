@@ -6,6 +6,8 @@ let deleting = false;
 let mainMenu = false;
 let deleteMenu = false;
 let deleteSubMenu = false;
+let similarProducts = {};
+let categories = [];
 const start = (bot, msg) => {
   //bot.sendMessage(
   // msg.chat.id,
@@ -50,8 +52,10 @@ const list = async (bot, msg) => {
           reply_markup: {
             inline_keyboard: [
               [
-                { text: "Edit", callback_data: `edit:${data[i]._id}` },
-                { text: "Delete", callback_data: `delete:${data[i]._id}` },
+                {
+                  text: "Available ?",
+                  callback_data: `Available:${data[i]._id}`,
+                },
               ],
             ],
           },
@@ -91,6 +95,7 @@ const initiate_Add = (bot, msg) => {
   bot.sendMessage(chatId, "What is the name of the product");
 };
 const add = async (bot, msg) => {
+  const chatId = msg.chat.id;
   if (
     msg.text == "/add" ||
     msg.text == "/start" ||
@@ -105,58 +110,66 @@ const add = async (bot, msg) => {
   }
   if (msg.text == "➕️Add products") {
     const chatId = msg.chat.id;
-    try {
-      if (!isAdding) {
+    isAdding = true;
+    newProduct[chatId] = {};
+    step = "name";
+    bot.sendMessage(chatId, "What is the name of the product");
+    return;
+  }
+  /*  if (!isAdding && step == 'none') {
         isAdding = true;
         const chatId = msg.chat.id;
         newProduct[chatId] = {};
         step = "name";
         bot.sendMessage(chatId, "What is the name of the product");
-      }
-      if (isAdding) {
-        if (step == "name") {
-          const name = msg.text;
-          newProduct[chatId].name = name;
-          step = "price";
-          bot.sendMessage(msg.chat.id, "What is the price of the product ?");
-        } else if (step == "price") {
-          newProduct[chatId].price = msg.text;
-          step = "category";
-          bot.sendMessage(msg.chat.id, "What is the category of the product ?");
-        } else if (step == "category") {
-          newProduct[chatId].category = msg.text;
-          step = "image";
-          bot.sendMessage(msg.chat.id, "Upload a picture of the product");
-        } else if (msg.photo) {
-          const fileId = msg.photo[msg.photo.length - 1].file_id;
-          newProduct[chatId].image = fileId;
-          isAdding = false;
-          step = "none";
-          await products.create(newProduct[chatId]);
-          bot.sendPhoto(msg.chat.id, fileId, {
-            caption:
-              "Product added successfully \n Name : " +
-              newProduct[chatId].name +
-              "\n Price : " +
-              newProduct[chatId].price +
-              "\n Category : " +
-              newProduct[chatId].category +
-              "\n Status: available",
-          });
-          delete newProduct[chatId];
-        }
-      }
-    } catch (err) {
-      bot.sendMessage(msg.chat.id, err);
-      console.log(err);
+        
+      }*/
+  if (isAdding) {
+    if (step == "name") {
+      const name = msg.text;
+      newProduct[chatId].name = name;
+      step = "price";
+      bot.sendMessage(msg.chat.id, "What is the price of the product ?");
+    } else if (step == "price") {
+      newProduct[chatId].price = msg.text;
+      step = "category";
+      bot.sendMessage(msg.chat.id, "What is the category of the product ?");
+    } else if (step == "category") {
+      newProduct[chatId].category = msg.text;
+      step = "image";
+      bot.sendMessage(msg.chat.id, "Upload a picture of the product");
+    } else if (msg.photo) {
+      const fileId = msg.photo[msg.photo.length - 1].file_id;
+      newProduct[chatId].image = fileId;
+      isAdding = false;
+      step = "none";
+      await products.create(newProduct[chatId]);
+      bot.sendPhoto(msg.chat.id, fileId, {
+        caption:
+          "Product added successfully \n Name : " +
+          newProduct[chatId].name +
+          "\n Price : " +
+          newProduct[chatId].price +
+          "\n Category : " +
+          newProduct[chatId].category +
+          "\n Status: available",
+      });
+      delete newProduct[chatId];
+    } else {
+      bot.sendMessage(msg.chat.id, "Please upload a picture of the product");
     }
-    return;
   }
+
   /*if ((msg.text = "📝Edit products")) {
     return;
   }
 */
-  if (msg.text == "🏠Back to main menu") {
+  if (
+    msg.text == "🏠Back to main menu" ||
+    msg.text == "🏖 No thanks" ||
+    msg.text == "🗓 Another time" ||
+    msg.text == "❎️No"
+  ) {
     isAdding = false;
     step = "none";
     newProduct = {};
@@ -192,7 +205,11 @@ const add = async (bot, msg) => {
     );
     return;
   }
-  if (deleting && msg.text == "All") {
+  if (deleting && msg.text == "⚡️Specific"){
+  categories = await products.distinct("category")
+  bot.sendMessage(msg.chat.id,"From which category would you like to remove ?", { reply_markup: { keyboard: [categories,["🏠Back to main menu"]]}});
+  }
+  if (deleting && msg.text == "🔥All") {
     deleteMenu = true;
     bot.sendMessage(
       msg.chat.id,
@@ -208,9 +225,37 @@ const add = async (bot, msg) => {
     );
     return;
   }
-  if (deleting && msg.text == "Yes") {
-    await products.deleteAll();
-    bot.sendMessage(msg.chat.id, "All products are purged ☄️");
+  if (deleting && msg.text == "✅️Yes") {
+    deleteSubMenu = true;
+    await products.deleteMany({});
+    bot.sendMessage(msg.chat.id, "All products are purged ☄️", {
+      reply_markup: {
+        keyboard: [
+          ["📦View products", "➕️Add products"],
+          ["📝Edit products", "✖️Delete products"],
+        ],
+        one_time_keyboard: false,
+        resize_keyboard: true,
+      },
+    });
+  }
+  if(deleting && msg.text == "❎️No"){
+    bot.sendMessage(msg.chat.id,"Deleting cancelled 💾")
+  }
+  if (msg.text == "✈️ Explore") {
+    bot.sendMessage(msg.chat.id, "Here are some similar products", {
+      reply_markup: { keyboard: [["🏠Back to main menu"]] },
+    });
+    similarProducts[chatId].forEach((product) => {
+      bot.sendPhoto(msg.chat.id, product.image, {
+        caption: `Name: ${product.name}\nPrice: ${product.price}\nStatus: ${product.status}`,
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "🛍 Order", callback_data: `Order:${product._id}` }],
+          ],
+        },
+      });
+    });
   }
 };
 const buttons = async (bot, query) => {
@@ -218,7 +263,24 @@ const buttons = async (bot, query) => {
     const chatId = query.message.chat.id;
     const data = query.data;
     const [action, productId] = data.split(":");
-    if (action == "edit") {
+    if (action == "Available") {
+      const product = await products.findById(productId);
+      if (product.stock == 0 || product.stock == null) {
+        similarProducts[chatId] = await products.find({
+          category: product.category,
+        });
+        bot.sendMessage(
+          chatId,
+          "Product is out of stock, would you like to explore similar products ?",
+          { reply_markup: { keyboard: [["✈️ Explore", "🏖 No thanks"]] } },
+        );
+      } else {
+        bot.sendMessage(
+          chatId,
+          `Product is available. \n ${product.stock} units left.`,
+          { reply_markup: { keyboard: [["🛍 Order", "🗓 Another time"]] } },
+        );
+      }
     }
     if (action == "delete") {
       const del = await products.findByIdAndDelete(productId);
