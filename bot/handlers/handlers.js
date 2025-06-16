@@ -8,6 +8,7 @@ let deleteMenu = false;
 let deleteSubMenu = false;
 let similarProducts = {};
 let categories = [];
+let oCategories = {};
 const start = (bot, msg) => {
   //bot.sendMessage(
   // msg.chat.id,
@@ -207,6 +208,7 @@ const add = async (bot, msg) => {
   }
   if (deleting && msg.text == "⚡️Specific") {
     categories = await products.distinct("category");
+    oCategories = await products.distinct("category");
     bot.sendMessage(
       msg.chat.id,
       "From which category would you like to remove ?",
@@ -219,7 +221,7 @@ const add = async (bot, msg) => {
       },
     );
   }
-  if (deleting && msg.text in categories) {
+  if (deleting && msg.text in oCategories) {
     bot.sendMessage(
       msg.chat.id,
       "Here are the products in this category, choose the to delete ☄️",
@@ -230,7 +232,7 @@ const add = async (bot, msg) => {
         caption: `Name: ${product.name}\nPrice: ${product.price}\nStatus: ${product.status}`,
         reply_markup: {
           inline_keyboard: [
-            [{ text: "⚡️Delete", callback_data: `delete: {product._id}` }],
+            [{ text: "⚡️Delete", callback_data: `delete:${product._id}` }],
           ],
         },
       });
