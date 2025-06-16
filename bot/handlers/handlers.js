@@ -205,9 +205,36 @@ const add = async (bot, msg) => {
     );
     return;
   }
-  if (deleting && msg.text == "⚡️Specific"){
-  categories = await products.distinct("category")
-  bot.sendMessage(msg.chat.id,"From which category would you like to remove ?", { reply_markup: { keyboard: [categories,["🏠Back to main menu"]]}});
+  if (deleting && msg.text == "⚡️Specific") {
+    categories = await products.distinct("category");
+    bot.sendMessage(
+      msg.chat.id,
+      "From which category would you like to remove ?",
+      {
+        reply_markup: {
+          keyboard: [categories, ["🏠Back to main menu"]],
+          one_time_keyboard: true,
+          resize_keyboard: true,
+        },
+      },
+    );
+  }
+  if (deleting && msg.text in categories) {
+    bot.sendMessage(
+      msg.chat.id,
+      "Here are the products in this category, choose the to delete ☄️",
+    );
+    const productsByCategory = await products.find({ category: msg.text });
+    productsByCategory.forEach((product) => {
+      bot.sendPhoto(msg.chat.id, product.image, {
+        caption: `Name: ${product.name}\nPrice: ${product.price}\nStatus: ${product.status}`,
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "⚡️Delete", callback_data: `delete: {product._id}` }],
+          ],
+        },
+      });
+    });
   }
   if (deleting && msg.text == "🔥All") {
     deleteMenu = true;
@@ -239,8 +266,8 @@ const add = async (bot, msg) => {
       },
     });
   }
-  if(deleting && msg.text == "❎️No"){
-    bot.sendMessage(msg.chat.id,"Deleting cancelled 💾")
+  if (deleting && msg.text == "❎️No") {
+    bot.sendMessage(msg.chat.id, "Deleting cancelled 💾");
   }
   if (msg.text == "✈️ Explore") {
     bot.sendMessage(msg.chat.id, "Here are some similar products", {
@@ -252,6 +279,30 @@ const add = async (bot, msg) => {
         reply_markup: {
           inline_keyboard: [
             [{ text: "🛍 Order", callback_data: `Order:${product._id}` }],
+          ],
+          one_time_keyboard: true,
+          resize_keyboard: true,
+        },
+      });
+    });
+  }
+  if (msg.text in products.distinct("category")) {
+    const productsByCategory = await productsproducts.find({
+      category: msg.text,
+    });
+    bot.sendMessage(msg.chat.id, "Here are the products in this category", {
+      reply_markup: {
+        keyboard: [["🏠Back to main menu"]],
+        one_time_keyboard: true,
+        resize_keyboard: true,
+      },
+    });
+    productsByCategory.forEach((product) => {
+      bot.sendPhoto(msg.chat.id, product.image, {
+        caption: `Name: ${product.name}\nPrice: ${product.price}\nStatus: ${product.status}`,
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "🛍Order", callback_data: `Order: {product._id}` }],
           ],
         },
       });
@@ -278,7 +329,13 @@ const buttons = async (bot, query) => {
         bot.sendMessage(
           chatId,
           `Product is available. \n ${product.stock} units left.`,
-          { reply_markup: { keyboard: [["🛍 Order", "🗓 Another time"]] } },
+          {
+            reply_markup: {
+              keyboard: [["🛍 Order", "🗓 Another time"]],
+              one_time_keyboard: true,
+              remove_keyboard: true,
+            },
+          },
         );
       }
     }
