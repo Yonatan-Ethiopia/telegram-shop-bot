@@ -316,6 +316,12 @@ const buttons = async (bot, query) => {
     const chatId = query.message.chat.id;
     const data = query.data;
     const [action, productId] = data.split(":");
+    if (action == "Order"){
+      const orderedProduct = await products.findById(productId)
+      await products.findByIdAndUpdate(productId, { $inc: { stock: -1}});
+      bot.sendPhoto(chatId, orderedProduct.image, {caption:`You have ordered ${orderedProduct.name}.for ${orderedProduct.price}. \n THANK YOU!`, reply_markup: { keyboard: [["🏠Back to main menu"]], one_time_keyboard: true, resize_keyboard: true}
+      } );
+    }
     if (action == "Available") {
       const product = await products.findById(productId);
       if (product.stock == 0 || product.stock == null) {
@@ -333,9 +339,7 @@ const buttons = async (bot, query) => {
           `Product is available. \n ${product.stock} units left.`,
           {
             reply_markup: {
-              keyboard: [["🛍 Order", "🗓 Another time"]],
-              one_time_keyboard: true,
-              remove_keyboard: true,
+              inline_keyboard: [[{ text: "🛍Order", callback_data:`Order:${product._id}`}]] 
             },
           },
         );
@@ -343,11 +347,11 @@ const buttons = async (bot, query) => {
     }
     if (action == "delete") {
       const del = await products.findByIdAndDelete(productId);
-      bot.sendMessage(chatId, "Product deleted successfully");
+      bot.sendMessage(query.message.chat.id, "Product deleted successfully");
     }
   } catch (err) {
-    bot.sendMessage(chatId, err);
-    console.log(err);
+    console.log(err)
+    bot.sendMessage(msg.chat.id, err);
   }
 };
 module.exports = { start, help, list, available, initiate_Add, add, buttons };
