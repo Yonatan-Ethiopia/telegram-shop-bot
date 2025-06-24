@@ -1,4 +1,5 @@
 const products = require("../../models/productsModel");
+const { isOwner, isAdmins} = require("../../authHandler");
 let isAdding = false;
 let step = "none";
 let newProduct = {};
@@ -8,7 +9,10 @@ let deleteMenu = false;
 let deleteSubMenu = false;
 let similarProducts = {};
 let categories = [];
-let oCategories = {};
+/*let oCategories = {};
+let ownerButtons1 = [["➕️Add admins", "➕️Add channel/group"],["🗒View admins/channels", "✏️Edit admins/channels"]];
+let adminsButton1 = [["📦View products", "➕️Add products"],["📝Edit products", "✖️Delete products"]];
+*/
 const start = (bot, msg) => {
   //bot.sendMessage(
   // msg.chat.id,
