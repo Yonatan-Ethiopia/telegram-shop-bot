@@ -2,7 +2,7 @@ const products = require("../../models/productsModel");
 let isAdding = false;
 let step = "none";
 let newProduct = {};
-const start = (bot, msg) => {
+const Admin_start = (bot, msg) => {
   bot.sendMessage(
     msg.chat.id,
     "Welcome to the admin panel.🏖\n Use the buttons in the keyboard to interact with me.💻",
@@ -18,7 +18,7 @@ const start = (bot, msg) => {
     },
   );
 };
-const Key_buttons = async (bot, msg) => {
+const Admin_keyButtons = async (bot, msg) => {
   if (msg.text == "📦View products") {
     const adminId = msg.from.id;
     const data = await products.find({ sellerId: adminId }).sort({ createdAt: -1 });
@@ -187,7 +187,7 @@ const Key_buttons = async (bot, msg) => {
   }
 }
 }
-const Inline_buttons = async (bot, query) => {
+const Admin_inline = async (bot, query) => {
   const data = query.data;
   const [action, value] = data.split(":");
   if (action == "delete") {
@@ -201,4 +201,4 @@ const Inline_buttons = async (bot, query) => {
   }
   
 };
-module.exports = { start, Key_buttons, Inline_buttons }
+module.exports = { Admin_start, Admin_keyButtons, Admin_inline }
